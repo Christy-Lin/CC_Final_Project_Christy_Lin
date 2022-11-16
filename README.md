@@ -1,1 +1,1 @@
-# CC_Final_Project_Christy_Lin
+# Creative Coding Final Project
