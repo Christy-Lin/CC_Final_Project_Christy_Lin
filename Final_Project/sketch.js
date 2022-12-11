@@ -1,10 +1,13 @@
 let player;
-let building;
-let birds;
+
+let building_height = [275, 375, 475];
+let plane_y_locations = [50, 75, 100, 125];
 
 let buildings = [];
+let planes = [];
 
-// let command;
+let command;
+// let command = new p5.SpeechRec('en-US'); 
 
 let button;
 
@@ -15,7 +18,7 @@ function setup() {
   rectMode(CORNER);
   circle(CENTER);
 
-  // command = new p5.SpeechRec('en-US');
+  command = new p5.SpeechRec('en-US');
 
   // Background Buildings
   // noStroke();
@@ -39,9 +42,14 @@ function setup() {
 
   // player_position = createVector()
   player = new Player();
-  buildings.push(new Building())
-  birds = new Birds();
-  // building = new Building();
+  buildings.push(new Building(375));
+  planes.push(new Plane(random(plane_y_locations)));
+  // bird_two = new Birds(600, 100);
+  // bird_three = new Birds(600, 125);
+  // bird_four = new Birds(600, 150);
+
+  button = createButton("Play again");
+  button.mousePressed(play_again);
 }
 
 function draw() {
@@ -57,61 +65,153 @@ function draw() {
     player.down();
   }
   
-  if (random(10) < 0.03) {
-    buildings.push(new Building());
-  }
+  player.display();
 
   for (building of buildings) {
     building.display(39, 193, 217);
     building.update();
   }
 
-  player.display();
-
-  birds.display();
+  for (plane of planes) {
+    plane.display();
+    plane.update();
+  }
   
-  if (player.hits(building)) {
-    noLoop();
-    background(0);
-    fill(255, 0, 0);
-    noStroke();
-    textSize(50);
-    textAlign(CENTER);
-    text('Game Over!', width/2, height/2);
+  if (random(10) < 0.5) {
+    last_building = buildings[buildings.length - 1];
+    if (last_building == undefined) {
+      buildings.push(new Building(random(building_height)));
+    }
+    else {
+      if (last_building.past_spawn_point()) {
+        buildings.push(new Building(random(building_height)));
+      }
+    }
+  }
 
-    button = createButton("Play again");
-    button.mousePressed(play_again);
+  if (random(10) < 0.5) {
+    last_plane = planes[planes.length - 1];
+    if (last_plane == undefined) {
+      planes.push(new Plane(random(plane_y_locations)));
+    }
+    else {
+      if (last_plane.past_spawn_point()) {
+        planes.push(new Plane(random(plane_y_locations)));
+      }
+    }
+  }
+
+  if (random(10) < 0.1) {
+      last_building = buildings[buildings.length - 1];
+      if (last_building == undefined) {
+        buildings.push(new Building(building_height[0]));
+      }
+      else {
+        if (last_building.past_spawn_point()) {
+          buildings.push(new Building(building_height[0]));
+        }
+      }
+  
+      last_plane = planes[planes.length - 1];
+      if (last_plane == undefined) {
+        planes.push(new Plane(65));
+      }
+      else {
+        if (last_plane.past_spawn_point()) {
+          planes.push(new Plane(65));
+        }
+      }
+  }
+
+  if (random(10) < 0.1) {
+    last_building = buildings[buildings.length - 1];
+    last_plane = planes[planes.length - 1];
+    if (last_building == undefined && last_plane == undefined) {
+      buildings.push(new Building(500));
+      planes.push(new Plane(plane_y_locations[0]));
+      planes.push(new Plane(275));
+    }
+    else {
+      if (last_building.past_spawn_point() && last_plane.past_spawn_point()) {
+        buildings.push(new Building(500));
+        planes.push(new Plane(plane_y_locations[0]));
+        planes.push(new Plane(275));
+      }
+    }
+
+    // if (last_plane == undefined) {
+    //   planes.push(new Plane(plane_y_locations[0]));
+    //   planes.push(new Plane(275));
+    // }
+    // else {
+    //   if (last_plane.past_spawn_point()) {
+    //     planes.push(new Plane(plane_y_locations[0]));
+    //     planes.push(new Plane(275));
+    //   }
+    // }
+  }
+  
+  for (let building of buildings) {
+    if (player.hits(building, "building")) {
+      noLoop();
+      background(0);
+      fill(255, 0, 0);
+      noStroke();
+      textSize(50);
+      textAlign(CENTER);
+      text('Game Over!', width/2, height/2);
+    }
+
+    if (building.off_screen()) {
+      buildings.splice(0, 1);
+    }
+  }
+
+  for (let plane of planes) {
+    if (player.hits(plane, "plane")) {
+      noLoop();
+      background(0);
+      fill(255, 0, 0);
+      noStroke();
+      textSize(50);
+      textAlign(CENTER);
+      text('Game Over!', width/2, height/2);
+    }
+
+    if (plane.off_screen()) {
+      planes.splice(0, 1);
+    }
   }
 }
 
 function play_again() {
   createCanvas(800, 800);
   background(180, 238, 250);
+  noLoop();
 
-  for (building in buildings) {
-    buildings.pop();
-  }
+  buildings = [];
+  planes = [];
 
-  rectMode(CORNER);
-  circle(CENTER);
   player = new Player();
-  buildings.push(new Building())
+  buildings.push(new Building(random(building_height)));
+  planes.push(new Plane(random(plane_y_locations)));
   loop();
 }
 
 class Building {
-  constructor() {
-    this.x_one = width;
-    this.x_two = 725;
-    this.x_three = 825;
+  constructor(y) {
+    this.x_one = width + 80;
+    this.x_two = 725 + 80;
+    this.x_three = 825 + 80;
+    this.y = y
   }
 
   display(red, green, blue) {
     stroke(0);
     fill(red, green, blue);
-    rect(this.x_one, 325, 150, 475);
-    rect(this.x_two, 375, 150, 425);
-    rect(this.x_three, 450, 150, 400);
+    rect(this.x_one, this.y - 50, 150, 800);
+    rect(this.x_two, this.y, 150, 800);
+    rect(this.x_three, this.y + 75, 150, 800);
   }
 
   update() {
@@ -120,22 +220,45 @@ class Building {
     this.x_three -= 5;
   }
 
+  off_screen() {
+    return this.x_one < -200;
+  }
+
+  past_spawn_point() {
+    return this.x_one < 400;
+  }
+
 }
 
-class Birds {
-  constructor() {
-
+class Plane {
+  constructor(y) {
+    this.x = width;
+    this.y = y;
   }
-  display(red, green, blue) {
+
+  display() {
     fill(34, 181, 159);
-    stroke(102, 230, 250);
+    stroke(0);
 
-    square(674, 26, 25);
-    square(637, 63, 25);
-    square(600, 100, 25);
-    square(637, 137, 25);
+    rect(this.x + 50, this.y - 50, 100, 25);
+    rect(this.x + 25, this.y - 25, 100, 25);
+    rect(this.x, this.y, 100, 25);
+    rect(this.x + 25, this.y + 25, 100, 25);
+    rect(this.x + 50, this.y + 50, 100, 25);
+
   }
 
+  update() {
+    this.x -= 5;
+  }
+
+  off_screen() {
+    return this.x < -200;
+  }
+
+  past_spawn_point() {
+    return this.x < 400;
+  }
 }
 
 class Player {
@@ -152,24 +275,35 @@ class Player {
     circle(this.x, this.y, this.size);
   }
 
-  hits(building) {
-    // Detects if the player games contact with the buildings
-    let building_one = collideRectCircle(building.x_one, 325, 150, 475, this.x, this.y, this.size);
-    let building_two = collideRectCircle(building.x_two, 375, 150, 425, this.x, this.y, this.size);
-    let building_three = collideRectCircle(building.x_three, 450, 150, 400, this.x, this.y, this.size);
-
-    return building_one || building_two || building_three;
+  hits(obstacle, type) {
+    if (type == "building") {
+      // Detects if the player makes contact with a building
+      let building_one = collideRectCircle(obstacle.x_one, obstacle.y - 50, 150, 475, this.x, this.y, this.size);
+      let building_two = collideRectCircle(obstacle.x_two, obstacle.y, 150, 425, this.x, this.y, this.size);
+      let building_three = collideRectCircle(obstacle.x_three, obstacle.y + 75, 150, 400, this.x, this.y, this.size);
+  
+      return building_one || building_two || building_three;
+    }
+    if (type == "plane") {
+    // Detects if the player makes contact with a plane
+    let plane_one = collideRectCircle(obstacle.x + 50, obstacle.y - 50, 100, 25, this.x, this.y, this.size);
+    let plane_two = collideRectCircle(obstacle.x + 25, obstacle.y - 25, 100, 25, this.x, this.y, this.size);
+    let plane_three = collideRectCircle(obstacle.x, obstacle.y, 100, 25, this.x, this.y, this.size);
+    let plane_four = collideRectCircle(obstacle.x + 25, obstacle.y + 25, 100, 25, this.x, this.y, this.size);
+    let plane_five = collideRectCircle(obstacle.x + 25, obstacle.y + 50, 100, 25, this.x, this.y, this.size);
+    return plane_one || plane_two || plane_three || plane_four || plane_five;
+    }
   }
 
   up() {
     if (this.y - 30 >= 0) {
-      this.y -= 15;
+      this.y -= 10;
     }
   }
 
   down() {
     if (this.y + 30 <= height) {
-      this.y += 15;
+      this.y += 10;
     }
   }
 }
