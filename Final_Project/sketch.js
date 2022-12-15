@@ -1,3 +1,5 @@
+// let font;
+
 let player;
 
 let building_height = [275, 375, 475];
@@ -7,9 +9,17 @@ let buildings = [];
 let planes = [];
 
 let command;
-// let command = new p5.SpeechRec('en-US'); 
 
 let button;
+
+let score = 0;
+let highscore = 0;
+
+
+function preload() {
+  // font = loadFont('assets/ARCADECLASSIC.ttf');
+}
+
 
 function setup() {
   createCanvas(800, 800);
@@ -18,8 +28,12 @@ function setup() {
   rectMode(CORNER);
   circle(CENTER);
 
-  command = new p5.SpeechRec('en-US');
+  command = new p5.SpeechRec('en-US', up_down);
+  command.continuous = true;
+  command.interimResults = true;
+  command.start();
 
+  // textFont(font);
   // Background Buildings
   // noStroke();
   // fill(72, 137, 203);
@@ -43,13 +57,14 @@ function setup() {
   // player_position = createVector()
   player = new Player();
   buildings.push(new Building(375));
-  planes.push(new Plane(random(plane_y_locations)));
+  planes.push(new Plane(50));
   // bird_two = new Birds(600, 100);
   // bird_three = new Birds(600, 125);
   // bird_four = new Birds(600, 150);
 
   button = createButton("Play again");
-  button.mousePressed(play_again);
+  // Resetting sketch by mouse click referenced from https://www.youtube.com/watch?v=lm8Y8TD4CTM&ab_channel=TheCodingTrain by TheCodingTrain
+  button.mousePressed(play_again);  // If the button object is pressed by a mouse, play_again will run
 }
 
 function draw() {
@@ -67,99 +82,114 @@ function draw() {
   
   player.display();
 
-  for (building of buildings) {
+  for (let building of buildings) {
     building.display(39, 193, 217);
     building.update();
   }
 
-  for (plane of planes) {
+  for (let plane of planes) {
     plane.display();
     plane.update();
   }
   
-  if (random(10) < 0.5) {
-    last_building = buildings[buildings.length - 1];
-    if (last_building == undefined) {
-      buildings.push(new Building(random(building_height)));
-    }
-    else {
-      if (last_building.past_spawn_point()) {
-        buildings.push(new Building(random(building_height)));
-      }
-    }
-  }
+  // if (random(10) < 0.5) {
+  //   last_building = buildings[buildings.length - 1];
+  //   if (last_building == undefined) {
+  //     buildings.push(new Building(random(building_height)));
+  //   }
+  //   else {
+  //     if (last_building.past_spawn_point()) {
+  //       buildings.push(new Building(random(building_height)));
+  //     }
+  //   }
+  // }
 
-  if (random(10) < 0.5) {
-    last_plane = planes[planes.length - 1];
-    if (last_plane == undefined) {
-      planes.push(new Plane(random(plane_y_locations)));
-    }
-    else {
-      if (last_plane.past_spawn_point()) {
-        planes.push(new Plane(random(plane_y_locations)));
-      }
-    }
-  }
+  // if (random(10) < 0.5) {
+  //   last_plane = planes[planes.length - 1];
+  //   if (last_plane == undefined) {
+  //     planes.push(new Plane(random(plane_y_locations)));
+  //   }
+  //   else {
+  //     if (last_plane.past_spawn_point()) {
+  //       planes.push(new Plane(random(plane_y_locations)));
+  //     }
+  //   }
+  // }
 
-  if (random(10) < 0.1) {
-      last_building = buildings[buildings.length - 1];
-      if (last_building == undefined) {
-        buildings.push(new Building(building_height[0]));
-      }
-      else {
-        if (last_building.past_spawn_point()) {
-          buildings.push(new Building(building_height[0]));
-        }
-      }
+
+  // Plane with Tall Building
+  // if (random(10) < 0.05) {
+  //     last_building = buildings[buildings.length - 1];
+  //     last_plane = planes[planes.length - 1];
+
+  //     if (last_building == undefined) {
+  //       buildings.push(new Building(350));
+  //     }
+  //     else {
+  //       if (last_building.past_spawn_point()) {
+  //         buildings.push(new Building(350));
+  //       }
+  //     }
   
-      last_plane = planes[planes.length - 1];
-      if (last_plane == undefined) {
-        planes.push(new Plane(65));
-      }
-      else {
-        if (last_plane.past_spawn_point()) {
-          planes.push(new Plane(65));
-        }
-      }
-  }
+  //     if (last_plane == undefined) {
+  //       planes.push(new Plane(50));
+  //     }
+  //     else {
+  //       if (last_plane.past_spawn_point()) {
+  //         planes.push(new Plane(50));
+  //       }
+  //     }
+  // }
 
-  if (random(10) < 0.1) {
+  // Planes with Short Building
+  // if (random(10) < 0.05) {
+  //   last_building = buildings[buildings.length - 1];
+  //   last_plane = planes[planes.length - 1];
+
+  //   if (last_building == undefined && last_plane == undefined) {
+  //     buildings.push(new Building(600));
+  //   }
+  //   else {
+  //     if (last_building.past_spawn_point()) {
+  //       buildings.push(new Building(600));
+  //     }
+  //   }
+
+  //   if (last_plane == undefined) {
+  //     planes.push(new Plane(50));
+  //     planes.push(new Plane(200));
+  //   }
+  //   else {
+  //     if (last_plane.past_spawn_point()) {
+        // planes.push(new Plane(50));
+        // planes.push(new Plane(200));
+  //     }
+  //   }
+  // }
+
+  // Array of 2-3 planes
+  if (random(3) < 0.5) {
     last_building = buildings[buildings.length - 1];
     last_plane = planes[planes.length - 1];
     if (last_building == undefined && last_plane == undefined) {
-      buildings.push(new Building(500));
-      planes.push(new Plane(plane_y_locations[0]));
-      planes.push(new Plane(275));
+      random_planes_buildings();
     }
-    else {
+    else if ((last_building != undefined && last_plane != undefined)) {
       if (last_building.past_spawn_point() && last_plane.past_spawn_point()) {
-        buildings.push(new Building(500));
-        planes.push(new Plane(plane_y_locations[0]));
-        planes.push(new Plane(275));
+        random_planes_buildings();
       }
     }
-
-    // if (last_plane == undefined) {
-    //   planes.push(new Plane(plane_y_locations[0]));
-    //   planes.push(new Plane(275));
-    // }
-    // else {
-    //   if (last_plane.past_spawn_point()) {
-    //     planes.push(new Plane(plane_y_locations[0]));
-    //     planes.push(new Plane(275));
-    //   }
-    // }
   }
   
+  score += 0.05;
+  textSize(30);
+  textAlign(LEFT);
+  text('Score:', 10, 785);
+  text(round(score), 100, 785);
+
   for (let building of buildings) {
     if (player.hits(building, "building")) {
-      noLoop();
-      background(0);
-      fill(255, 0, 0);
-      noStroke();
-      textSize(50);
-      textAlign(CENTER);
-      text('Game Over!', width/2, height/2);
+      game_over();
     }
 
     if (building.off_screen()) {
@@ -169,19 +199,79 @@ function draw() {
 
   for (let plane of planes) {
     if (player.hits(plane, "plane")) {
-      noLoop();
-      background(0);
-      fill(255, 0, 0);
-      noStroke();
-      textSize(50);
-      textAlign(CENTER);
-      text('Game Over!', width/2, height/2);
+      game_over();
     }
 
     if (plane.off_screen()) {
       planes.splice(0, 1);
     }
   }
+}
+
+function game_over() {
+  noLoop();
+  background(0);
+  fill(255, 0, 0);
+  noStroke();
+  textSize(50);
+  textAlign(CENTER);
+
+  text('Game Over!', width/2, height/2- 100);
+  
+  textSize(30);
+  text('Score:', width/2- 20, height/2 - 65);
+  
+  textAlign(LEFT);
+  text(round(score), width/2 + 30, height/2 - 65);
+  if (score > highscore + 1) {
+    highscore = score;
+    textSize(20);
+    textAlign(CENTER);
+    text('New High Score!', width/2, height/2 + 20);
+  }
+  textSize(30);
+  textAlign(LEFT);
+  text('High Score:', width/2 - 105, height/2 + 50);
+  text(round(highscore), width/2 + 55, height/2 + 50);
+  score = 0;
+}
+
+function random_planes_buildings() {
+  let r = random(0, 7);
+  if (r < 1) {
+    planes.push(new Plane(50));
+    planes.push(new Plane(400));
+    buildings.push(new Building(730));
+  }
+  else if (r > 1 && r < 2) {
+    planes.push(new Plane(225));
+    buildings.push(new Building(563));
+  }
+  else if (r > 2 && r < 3) {
+    planes.push(new Plane(50));
+    buildings.push(new Building(350));
+  }
+  else if (r > 3 && r < 4) {
+    planes.push(new Plane(100));
+    buildings.push(new Building(400));
+  }
+  else if (r > 4 && r < 5) {
+    buildings.push(new Building(300));
+  }
+  else if (r > 5 && r < 6) {
+    planes.push(new Plane(450));
+  }
+  else if (r > 6 && r < 7) {
+    planes.push(new Plane(225));
+  }
+  else {
+    planes.push(new Plane(50));
+    planes.push(new Plane(200));
+    buildings.push(new Building(600));
+  }
+  
+
+
 }
 
 function play_again() {
@@ -193,8 +283,8 @@ function play_again() {
   planes = [];
 
   player = new Player();
-  buildings.push(new Building(random(building_height)));
-  planes.push(new Plane(random(plane_y_locations)));
+  buildings.push(new Building(375));
+  planes.push(new Plane(50));
   loop();
 }
 
@@ -278,32 +368,49 @@ class Player {
   hits(obstacle, type) {
     if (type == "building") {
       // Detects if the player makes contact with a building
-      let building_one = collideRectCircle(obstacle.x_one, obstacle.y - 50, 150, 475, this.x, this.y, this.size);
-      let building_two = collideRectCircle(obstacle.x_two, obstacle.y, 150, 425, this.x, this.y, this.size);
-      let building_three = collideRectCircle(obstacle.x_three, obstacle.y + 75, 150, 400, this.x, this.y, this.size);
+      // Collision detected referenced from https://editor.p5js.org/nguyenadam/sketches/k0OYejKdz by nguyenadam
+      let building_one = collideRectCircle(obstacle.x_one, obstacle.y - 50, 150, 475, this.x, this.y, this.size);     // collideRectCircle() is given the locations and sizes of a rectangle and circle. If the two shapes collide the function will return true and saved to variable building_one
+      let building_two = collideRectCircle(obstacle.x_two, obstacle.y, 150, 425, this.x, this.y, this.size);          // collideRectCircle() is given the locations and sizes of a rectangle and circle. If the two shapes collide the function will return true and saved to variable building_two
+      let building_three = collideRectCircle(obstacle.x_three, obstacle.y + 75, 150, 400, this.x, this.y, this.size); // collideRectCircle() is given the locations and sizes of a rectangle and circle. If the two shapes collide the function will return true and saved to variable building_three
   
-      return building_one || building_two || building_three;
+      return building_one || building_two || building_three;  // If the circle makes contact with at least one of the rectangles, true will be returned
     }
     if (type == "plane") {
     // Detects if the player makes contact with a plane
-    let plane_one = collideRectCircle(obstacle.x + 50, obstacle.y - 50, 100, 25, this.x, this.y, this.size);
-    let plane_two = collideRectCircle(obstacle.x + 25, obstacle.y - 25, 100, 25, this.x, this.y, this.size);
-    let plane_three = collideRectCircle(obstacle.x, obstacle.y, 100, 25, this.x, this.y, this.size);
-    let plane_four = collideRectCircle(obstacle.x + 25, obstacle.y + 25, 100, 25, this.x, this.y, this.size);
-    let plane_five = collideRectCircle(obstacle.x + 25, obstacle.y + 50, 100, 25, this.x, this.y, this.size);
-    return plane_one || plane_two || plane_three || plane_four || plane_five;
+    let plane_one = collideRectCircle(obstacle.x + 50, obstacle.y - 50, 100, 25, this.x, this.y, this.size);  // collideRectCircle() is given the locations and sizes of a rectangle and circle. If the two shapes collide the function will return true and saved to variable plane_one
+    let plane_two = collideRectCircle(obstacle.x + 25, obstacle.y - 25, 100, 25, this.x, this.y, this.size);  // collideRectCircle() is given the locations and sizes of a rectangle and circle. If the two shapes collide the function will return true and saved to variable plane_two
+    let plane_three = collideRectCircle(obstacle.x, obstacle.y, 100, 25, this.x, this.y, this.size);          // collideRectCircle() is given the locations and sizes of a rectangle and circle. If the two shapes collide the function will return true and saved to variable plane_three
+    let plane_four = collideRectCircle(obstacle.x + 25, obstacle.y + 25, 100, 25, this.x, this.y, this.size); // collideRectCircle() is given the locations and sizes of a rectangle and circle. If the two shapes collide the function will return true and saved to variable plane_four
+    let plane_five = collideRectCircle(obstacle.x + 50, obstacle.y + 50, 100, 25, this.x, this.y, this.size); // collideRectCircle() is given the locations and sizes of a rectangle and circle. If the two shapes collide the function will return true and saved to variable plane_five
+    return plane_one || plane_two || plane_three || plane_four || plane_five; // If the circle makes contact with at least one of the rectangles, true will be returned
     }
   }
 
   up() {
     if (this.y - 30 >= 0) {
-      this.y -= 10;
+      this.y -= 20;
+      console.log("successfully up");
     }
   }
 
   down() {
     if (this.y + 30 <= height) {
-      this.y += 10;
+      this.y += 20;
+      console.log("successfully down");
     }
   }
+}
+
+function up_down() {
+  // Split input from speech recognition from https://github.com/IDMNYU/p5.js-speech/blob/master/examples/05continuousrecognition.html by Oliver Wright and R. Luke DuBois
+  let mostrecentword = command.resultString.split(' ').pop(); // Creates a string of the speech input, the string is split by spaces into a array of substrings and the last one is popped and stored into new variable mostrecentword
+  if (mostrecentword.indexOf("up") !== -1) {                  // Check the index of the first occurence of "up" and compare it to the last
+    // console.log("up");
+    player.up();
+  }
+  else if (mostrecentword.indexOf("down") !== -1) {           // Check the index of the first occurence of "down" and compare it to the last
+    // console.log("down");
+    player.down();
+  }
+  console.log(mostrecentword);
 }
