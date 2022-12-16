@@ -1,25 +1,27 @@
-// let font;
+// Christy Lin
+// DM-UY 1133 - Creative Coding
+// Professor Katherine Bennett
+// Final Project - Flappy Bird: City Edition
+
+let font;
 
 let player;
 
-let building_height = [275, 375, 475];
-let plane_y_locations = [50, 75, 100, 125];
+let command;
 
 let buildings = [];
 let planes = [];
+let lives = [];
 
-let command;
-
-let button;
-
+let lives_left = true;
 let score = 0;
 let highscore = 0;
 
+let button;
 
 function preload() {
-  // font = loadFont('assets/ARCADECLASSIC.ttf');
+  font = loadFont('assets/PixelGameFont.ttf');
 }
-
 
 function setup() {
   createCanvas(800, 800);
@@ -33,7 +35,7 @@ function setup() {
   command.interimResults = true;
   command.start();
 
-  // textFont(font);
+  textFont(font);
   // Background Buildings
   // noStroke();
   // fill(72, 137, 203);
@@ -50,19 +52,15 @@ function setup() {
   // vertex(23, 480);
   // endShape(CLOSE);
 
-  // position = createVector(400, 400);
-  // velocity = createVector(random(-1, -5), 0);
-  // building1 = new Building(velocity);
-
-  // player_position = createVector()
   player = new Player();
   buildings.push(new Building(375));
   planes.push(new Plane(50));
-  // bird_two = new Birds(600, 100);
-  // bird_three = new Birds(600, 125);
-  // bird_four = new Birds(600, 150);
+  for (let i = 30; i <= 120; i += 45) {
+    lives.push(new Heart(i));
+  } 
 
   button = createButton("Play again");
+
   // Resetting sketch by mouse click referenced from https://www.youtube.com/watch?v=lm8Y8TD4CTM&ab_channel=TheCodingTrain by TheCodingTrain
   button.mousePressed(play_again);  // If the button object is pressed by a mouse, play_again will run
 }
@@ -91,83 +89,12 @@ function draw() {
     plane.display();
     plane.update();
   }
-  
-  // if (random(10) < 0.5) {
-  //   last_building = buildings[buildings.length - 1];
-  //   if (last_building == undefined) {
-  //     buildings.push(new Building(random(building_height)));
-  //   }
-  //   else {
-  //     if (last_building.past_spawn_point()) {
-  //       buildings.push(new Building(random(building_height)));
-  //     }
-  //   }
-  // }
 
-  // if (random(10) < 0.5) {
-  //   last_plane = planes[planes.length - 1];
-  //   if (last_plane == undefined) {
-  //     planes.push(new Plane(random(plane_y_locations)));
-  //   }
-  //   else {
-  //     if (last_plane.past_spawn_point()) {
-  //       planes.push(new Plane(random(plane_y_locations)));
-  //     }
-  //   }
-  // }
+  for (let heart of lives) {
+    heart.display();
+  }
 
-
-  // Plane with Tall Building
-  // if (random(10) < 0.05) {
-  //     last_building = buildings[buildings.length - 1];
-  //     last_plane = planes[planes.length - 1];
-
-  //     if (last_building == undefined) {
-  //       buildings.push(new Building(350));
-  //     }
-  //     else {
-  //       if (last_building.past_spawn_point()) {
-  //         buildings.push(new Building(350));
-  //       }
-  //     }
-  
-  //     if (last_plane == undefined) {
-  //       planes.push(new Plane(50));
-  //     }
-  //     else {
-  //       if (last_plane.past_spawn_point()) {
-  //         planes.push(new Plane(50));
-  //       }
-  //     }
-  // }
-
-  // Planes with Short Building
-  // if (random(10) < 0.05) {
-  //   last_building = buildings[buildings.length - 1];
-  //   last_plane = planes[planes.length - 1];
-
-  //   if (last_building == undefined && last_plane == undefined) {
-  //     buildings.push(new Building(600));
-  //   }
-  //   else {
-  //     if (last_building.past_spawn_point()) {
-  //       buildings.push(new Building(600));
-  //     }
-  //   }
-
-  //   if (last_plane == undefined) {
-  //     planes.push(new Plane(50));
-  //     planes.push(new Plane(200));
-  //   }
-  //   else {
-  //     if (last_plane.past_spawn_point()) {
-        // planes.push(new Plane(50));
-        // planes.push(new Plane(200));
-  //     }
-  //   }
-  // }
-
-  // Array of 2-3 planes
+  // Spawn in different obstacles
   if (random(3) < 0.5) {
     last_building = buildings[buildings.length - 1];
     last_plane = planes[planes.length - 1];
@@ -184,12 +111,24 @@ function draw() {
   score += 0.05;
   textSize(30);
   textAlign(LEFT);
-  text('Score:', 10, 785);
-  text(round(score), 100, 785);
+  fill(240, 7, 45);
+  strokeWeight(3);
+  
+  text('SCORE:', 10, 785);
+  text(round(score), 120, 785);
 
   for (let building of buildings) {
     if (player.hits(building, "building")) {
-      game_over();
+      if (lives_left == false) {
+        game_over();
+      }
+      else {
+        buildings.splice(0, 1);
+        lives.pop();
+        if (lives.length == 0) {
+          lives_left = false;
+        }
+      }
     }
 
     if (building.off_screen()) {
@@ -199,7 +138,16 @@ function draw() {
 
   for (let plane of planes) {
     if (player.hits(plane, "plane")) {
-      game_over();
+      if (lives_left == false) {
+        game_over();
+      }
+      else {
+        planes.splice(planes.indexOf(plane), 1);
+        lives.pop();
+        if (lives.length == 0) {
+          lives_left = false;
+        }
+      }
     }
 
     if (plane.off_screen()) {
@@ -211,29 +159,27 @@ function draw() {
 function game_over() {
   noLoop();
   background(0);
+
   fill(255, 0, 0);
   noStroke();
+
   textSize(50);
   textAlign(CENTER);
-
-  text('Game Over!', width/2, height/2- 100);
-  
+  text('GAME OVER!', width/2, height/2- 100);
   textSize(30);
-  text('Score:', width/2- 20, height/2 - 65);
-  
+  text('SCORE:', width/2- 20, height/2 - 65);
   textAlign(LEFT);
-  text(round(score), width/2 + 30, height/2 - 65);
+  text(round(score), width/2 + 35, height/2 - 65);
   if (score > highscore + 1) {
     highscore = score;
     textSize(20);
     textAlign(CENTER);
-    text('New High Score!', width/2, height/2 + 20);
+    text('NEW HIGH SCORE!', width/2, height/2 + 20);
   }
   textSize(30);
   textAlign(LEFT);
-  text('High Score:', width/2 - 105, height/2 + 50);
-  text(round(highscore), width/2 + 55, height/2 + 50);
-  score = 0;
+  text('HIGH SCORE:', width/2 - 120, height/2 + 50);
+  text(round(highscore), width/2 + 65, height/2 + 50);
 }
 
 function random_planes_buildings() {
@@ -278,6 +224,8 @@ function play_again() {
   createCanvas(800, 800);
   background(180, 238, 250);
   noLoop();
+  score = 0;
+  lives_left = true;
 
   buildings = [];
   planes = [];
@@ -285,6 +233,9 @@ function play_again() {
   player = new Player();
   buildings.push(new Building(375));
   planes.push(new Plane(50));
+  for (let i = 30; i <= 120; i += 45) {
+    lives.push(new Heart(i));
+  } 
   loop();
 }
 
@@ -389,15 +340,33 @@ class Player {
   up() {
     if (this.y - 30 >= 0) {
       this.y -= 20;
-      console.log("successfully up");
+      // console.log("successfully up");
     }
   }
 
   down() {
     if (this.y + 30 <= height) {
       this.y += 20;
-      console.log("successfully down");
+      // console.log("successfully down");
     }
+  }
+}
+
+class Heart {
+  constructor(x) {
+    this.x = x;
+    this.y = 20;
+    this.size = 30;
+  }
+  display() {
+    fill(240, 7, 45);
+    strokeWeight(2);
+    // Heart Shape by Mithru from https://editor.p5js.org/Mithru/sketches/Hk1N1mMQg
+    beginShape(); // Begin drawing a custom shape
+    vertex(this.x, this.y); // Uses the x and y coordinates to create a vertex
+    bezierVertex(this.x - this.size / 2, this.y - this.size / 2, this.x - this.size, this.y + this.size / 3, this.x, this.y + this.size); // The x location, y location and heart size are utilized in the control and anchor points to draw the left half of the heart
+    bezierVertex(this.x + this.size, this.y + this.size / 3, this.x + this.size / 2, this.y - this.size / 2, this.x, this.y); // The x location, y location and heart size are utilized in the control and anchor points to draw the right half of the heart
+    endShape(CLOSE);  // End drawing a custom shape using mode CLOSE
   }
 }
 
@@ -412,5 +381,5 @@ function up_down() {
     // console.log("down");
     player.down();
   }
-  console.log(mostrecentword);
+  // console.log(mostrecentword);
 }
