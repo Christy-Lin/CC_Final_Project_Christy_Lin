@@ -12,11 +12,12 @@ let command;
 let buildings = [];
 let planes = [];
 let lives = [];
+let slows = [];
 
 let lives_left = true;
 let score = 0;
 let highscore = 0;
-
+let update_speed = 3.5;
 let button;
 
 function preload() {
@@ -36,28 +37,13 @@ function setup() {
   command.start();
 
   textFont(font);
-  // Background Buildings
-  // noStroke();
-  // fill(72, 137, 203);
-  // beginShape();
-  // vertex(800, 600);
-  // vertex(800, 800);
-  // vertex(0, 800);
-  // vertex(0, 400);
-  // vertex(10, 400);
-  // vertex(10, 410);
-  // vertex(12, 440);
-  // vertex(16, 470);
-  // vertex(20, 470);
-  // vertex(23, 480);
-  // endShape(CLOSE);
 
   player = new Player();
   buildings.push(new Building(375));
   planes.push(new Plane(50));
   for (let i = 30; i <= 120; i += 45) {
     lives.push(new Heart(i));
-  } 
+  }
 
   button = createButton("Play again");
 
@@ -82,16 +68,21 @@ function draw() {
 
   for (let building of buildings) {
     building.display(39, 193, 217);
-    building.update();
+    building.update(update_speed);
   }
 
   for (let plane of planes) {
     plane.display();
-    plane.update();
+    plane.update(update_speed);
   }
 
   for (let heart of lives) {
     heart.display();
+  }
+
+  for (let i = 0; i < slows.length; ++i) {
+    slows[i].display();
+    slows[i].update(update_speed);
   }
 
   // Spawn in different obstacles
@@ -107,8 +98,13 @@ function draw() {
       }
     }
   }
-  
-  score += 0.05;
+
+  if (update_speed < 8) {
+    update_speed += 0.0005;
+    // update_speed += 0.01;
+  }
+  // console.log(update_speed);
+  score += 0.02;
   textSize(30);
   textAlign(LEFT);
   fill(240, 7, 45);
@@ -154,7 +150,19 @@ function draw() {
       planes.splice(0, 1);
     }
   }
+
+  for (let slow of slows) {
+    if (player.hits(slow, "slow")) {
+      update_speed = 3.5;
+      slows.splice(0, 1);
+    }
+  
+    if (slow.off_screen()) {
+      slows.splice(0, 1);
+    }
+  }
 }
+
 
 function game_over() {
   noLoop();
@@ -183,26 +191,59 @@ function game_over() {
 }
 
 function random_planes_buildings() {
-  let r = random(0, 7);
+  let r = random(0, 8);
+  let r_ = random(0, 10);
+  
   if (r < 1) {
     planes.push(new Plane(50));
     planes.push(new Plane(400));
     buildings.push(new Building(730));
+    if (update_speed > 6) {
+      if (r_ > 0 && r_ < 2) {
+        slows.push(new Slow(250));
+      }
+      else if (r_ > 2 && r_ < 4) {
+        slows.push(new Slow(600));
+      }
+    }
   }
   else if (r > 1 && r < 2) {
     planes.push(new Plane(225));
     buildings.push(new Building(563));
+    if (update_speed > 6) {
+      if (r_ > 0 && r_ < 2) {
+        slows.push(new Slow(100));
+      }
+      else if (r_ > 2 && r_ < 4) {
+        slows.push(new Slow(425));
+      }
+    }
   }
   else if (r > 2 && r < 3) {
     planes.push(new Plane(50));
     buildings.push(new Building(350));
+      if (update_speed > 6) {
+        if (r_ > 0 && r_ < 2) {
+          slows.push(new Slow(200));
+      }
+    }
   }
   else if (r > 3 && r < 4) {
     planes.push(new Plane(100));
     buildings.push(new Building(400));
+    if (update_speed > 6) {
+      if (r_ > 0 && r_ < 2) {
+        slows.push(new Slow(250));
+      }
+    }
   }
   else if (r > 4 && r < 5) {
     buildings.push(new Building(300));
+    if (update_speed > 6) {
+      if (r_ > 0 && r_ < 2) {
+        slows.push(new Slow(125));
+      }
+    }
   }
   else if (r > 5 && r < 6) {
     planes.push(new Plane(450));
@@ -214,10 +255,12 @@ function random_planes_buildings() {
     planes.push(new Plane(50));
     planes.push(new Plane(200));
     buildings.push(new Building(600));
+    if (update_speed > 6) {
+      if (r_ > 0 && r_ < 2) {
+        slows.push(new Slow(400));
+      }
+    }
   }
-  
-
-
 }
 
 function play_again() {
@@ -255,10 +298,10 @@ class Building {
     rect(this.x_three, this.y + 75, 150, 800);
   }
 
-  update() {
-    this.x_one -= 5;
-    this.x_two -= 5;
-    this.x_three -= 5;
+  update(update_speed) {
+    this.x_one -= update_speed;
+    this.x_two -= update_speed;
+    this.x_three -= update_speed;
   }
 
   off_screen() {
@@ -289,8 +332,8 @@ class Plane {
 
   }
 
-  update() {
-    this.x -= 5;
+  update(update_speed) {
+    this.x -= update_speed;
   }
 
   off_screen() {
@@ -335,6 +378,10 @@ class Player {
     let plane_five = collideRectCircle(obstacle.x + 50, obstacle.y + 50, 100, 25, this.x, this.y, this.size); // collideRectCircle() is given the locations and sizes of a rectangle and circle. If the two shapes collide the function will return true and saved to variable plane_five
     return plane_one || plane_two || plane_three || plane_four || plane_five; // If the circle makes contact with at least one of the rectangles, true will be returned
     }
+    if (type == "slow") {
+      let collision = collideCircleCircle(obstacle.x, obstacle.y, obstacle.size, this.x, this.y, this.size)
+      return collision
+    }
   }
 
   up() {
@@ -351,6 +398,29 @@ class Player {
     }
   }
 }
+
+class Slow {
+  constructor(y) {
+    this.x = width;
+    this.y = y;
+    this.size = 40;
+  }
+
+  display() {
+    fill(240, 197, 18);
+    circle(this.x , this.y, this.size);
+  }
+
+  update(update_speed) {
+    this.x -= update_speed;
+  }
+
+  off_screen() {
+    return this.x < -20;
+  }
+
+}
+
 
 class Heart {
   constructor(x) {
