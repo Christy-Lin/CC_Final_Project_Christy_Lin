@@ -3,27 +3,47 @@
 // Professor Katherine Bennett
 // Final Project - Flappy Bird: City Edition
 
+// Font and Music
 let font;
+let ding;
+let death_sound_effect;
+let hit_obstacles;
+let music;
 
+// Player
 let player;
 
+// Speech Commands ("Up", "Down")
 let command;
 
+// Objects
 let buildings = [];
 let planes = [];
 let lives = [];
 let slows = [];
 
+// Lives and Score Variables
 let lives_left = true;
 let score = 0;
 let highscore = 0;
 let update_speed = 3.5;
+
+// Play Again Button
 let button;
 
+
+// Preloads font and sound
+// https://www.dafont.com/pixelgamefont.font
+// https://pixabay.com/sound-effects/
 function preload() {
   font = loadFont('assets/PixelGameFont.ttf');
+  ding = loadSound('assets/ding.mp3');
+	death_sound_effect = loadSound('assets/death_sound_effect.mp3');
+	hit_obstacles = loadSound('assets/hit_obstacles.mp3');
+	music = loadSound('assets/music.mp3');
 }
 
+// Sets up the game
 function setup() {
   createCanvas(800, 800);
   background(180, 238, 250);
@@ -31,6 +51,7 @@ function setup() {
   rectMode(CORNER);
   circle(CENTER);
 
+  // Takes in audio commands
   command = new p5.SpeechRec('en-US', up_down);
   command.continuous = true;
   command.interimResults = true;
@@ -49,13 +70,14 @@ function setup() {
 
   // Resetting sketch by mouse click referenced from https://www.youtube.com/watch?v=lm8Y8TD4CTM&ab_channel=TheCodingTrain by TheCodingTrain
   button.mousePressed(play_again);  // If the button object is pressed by a mouse, play_again will run
+  music.play();
+	music.loop();
 }
 
 function draw() {
   background(180, 238, 250);
 
-  // The key is down functions will be replaced with speech recognition
-  // The input will be commands 'up' and 'down' and will call the player up() and down() methods respectively
+  // Players have the option of playing using the up and down arrow keys
   if (keyIsDown(UP_ARROW)) {
     player.up();
   }
@@ -104,6 +126,8 @@ function draw() {
     // update_speed += 0.01;
   }
   // console.log(update_speed);
+
+  // Display Score
   score += 0.02;
   textSize(30);
   textAlign(LEFT);
@@ -116,9 +140,11 @@ function draw() {
   for (let building of buildings) {
     if (player.hits(building, "building")) {
       if (lives_left == false) {
+				death_sound_effect.play();
         game_over();
       }
       else {
+        hit_obstacles.play();
         buildings.splice(0, 1);
         lives.pop();
         if (lives.length == 0) {
@@ -135,9 +161,11 @@ function draw() {
   for (let plane of planes) {
     if (player.hits(plane, "plane")) {
       if (lives_left == false) {
+				death_sound_effect.play();
         game_over();
       }
       else {
+        hit_obstacles.play();
         planes.splice(planes.indexOf(plane), 1);
         lives.pop();
         if (lives.length == 0) {
@@ -155,6 +183,7 @@ function draw() {
     if (player.hits(slow, "slow")) {
       update_speed = 3.5;
       slows.splice(0, 1);
+      ding.play();
     }
   
     if (slow.off_screen()) {
@@ -163,7 +192,7 @@ function draw() {
   }
 }
 
-
+// Display the game over screen
 function game_over() {
   noLoop();
   background(0);
@@ -190,6 +219,7 @@ function game_over() {
   text(round(highscore), width/2 + 65, height/2 + 50);
 }
 
+// Spawns in random arrangements of planes and buildings. Occasionally spawns in a slow object if the game is a certain speed
 function random_planes_buildings() {
   let r = random(0, 8);
   let r_ = random(0, 10);
@@ -198,11 +228,11 @@ function random_planes_buildings() {
     planes.push(new Plane(50));
     planes.push(new Plane(400));
     buildings.push(new Building(730));
-    if (update_speed > 6) {
-      if (r_ > 0 && r_ < 2) {
+    if (update_speed > 5) {
+      if (r_ > 0 && r_ < 3) {
         slows.push(new Slow(250));
       }
-      else if (r_ > 2 && r_ < 4) {
+      else if (r_ > 3 && r_ < 6) {
         slows.push(new Slow(600));
       }
     }
@@ -210,11 +240,11 @@ function random_planes_buildings() {
   else if (r > 1 && r < 2) {
     planes.push(new Plane(225));
     buildings.push(new Building(563));
-    if (update_speed > 6) {
-      if (r_ > 0 && r_ < 2) {
+    if (update_speed > 5) {
+      if (r_ > 0 && r_ < 3) {
         slows.push(new Slow(100));
       }
-      else if (r_ > 2 && r_ < 4) {
+      else if (r_ > 3 && r_ < 6) {
         slows.push(new Slow(425));
       }
     }
@@ -222,8 +252,8 @@ function random_planes_buildings() {
   else if (r > 2 && r < 3) {
     planes.push(new Plane(50));
     buildings.push(new Building(350));
-      if (update_speed > 6) {
-        if (r_ > 0 && r_ < 2) {
+      if (update_speed > 5) {
+        if (r_ > 0 && r_ < 3) {
           slows.push(new Slow(200));
       }
     }
@@ -231,16 +261,16 @@ function random_planes_buildings() {
   else if (r > 3 && r < 4) {
     planes.push(new Plane(100));
     buildings.push(new Building(400));
-    if (update_speed > 6) {
-      if (r_ > 0 && r_ < 2) {
+    if (update_speed > 5) {
+      if (r_ > 0 && r_ < 3) {
         slows.push(new Slow(250));
       }
     }
   }
   else if (r > 4 && r < 5) {
     buildings.push(new Building(300));
-    if (update_speed > 6) {
-      if (r_ > 0 && r_ < 2) {
+    if (update_speed > 5) {
+      if (r_ > 0 && r_ < 3) {
         slows.push(new Slow(125));
       }
     }
@@ -255,14 +285,15 @@ function random_planes_buildings() {
     planes.push(new Plane(50));
     planes.push(new Plane(200));
     buildings.push(new Building(600));
-    if (update_speed > 6) {
-      if (r_ > 0 && r_ < 2) {
+    if (update_speed > 5) {
+      if (r_ > 0 && r_ < 3) {
         slows.push(new Slow(400));
       }
     }
   }
 }
 
+// Restarts the game if the player chooses to play again
 function play_again() {
   createCanvas(800, 800);
   background(180, 238, 250);
